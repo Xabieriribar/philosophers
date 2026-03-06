@@ -4,9 +4,11 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 
-#ifndef FAILED 1
-#define FAILED 1
+#ifndef NULL 
+#define NULL 1
+#endif
 
 typedef struct s_data
 {
@@ -15,6 +17,7 @@ typedef struct s_data
     int time_to_eat;
     int time_to_sleep;
     int number_of_times_each_philosopher_must_eat;
+    int *thread_exit_status;
 }   t_data;
 // ==============================================================================
 // UTILS
