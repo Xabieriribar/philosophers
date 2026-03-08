@@ -14,7 +14,8 @@ PTHREAD     = -pthread
 # Source Files and Object Files
 # ==============================================================================
 SRCS        = src/main.c \
-			  src/utils/philosophers_utils.c
+			  src/utils/philosophers_utils.c \
+			  src/utils/parser_utils.c \
 
 OBJS        = $(SRCS:.c=.o)
 

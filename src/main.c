@@ -1,23 +1,27 @@
 #include "../includes/philosophers.h"
 
-t_data *init_data(int argc, char **argv)
+t_simulation *init_simulation(int argc, char **argv)
 {
-    t_data  *data;
+    t_simulation  *simulation;
 
-    if (argc >= 7 || argc <= 4)
+    if (argc >= 7 || argc <= 4 || !argv || !*argv)
         return (NULL);
-    data = malloc(sizeof(struct s_data));
-    if (!data)
+    if (contains_alphas(argv) != 0)
         return (NULL);
-    data->number_of_philosophers = ft_atoi(argv[1]);
-    data->time_to_die = ft_atoi(argv[2]);
-    data->time_to_eat = ft_atoi(argv[3]);
-    data->time_to_sleep = ft_atoi(argv[4]);
+    simulation = malloc(sizeof(struct s_simulation));
+    if (!simulation)
+        return (NULL);
+    simulation->number_of_philosophers = ft_atoi(argv[1]);
+    simulation->time_to_die = ft_atoi(argv[2]);
+    simulation->time_to_eat = ft_atoi(argv[3]);
+    simulation->time_to_sleep = ft_atoi(argv[4]);
     if (argv[5])
-        data->number_of_times_each_philosopher_must_eat = ft_atoi(argv[5]);
+        simulation->number_of_times_each_philosopher_must_eat = ft_atoi(argv[5]);
     else
-        data->number_of_times_each_philosopher_must_eat = -1;
-    return (data);
+        simulation->number_of_times_each_philosopher_must_eat = -1;
+    if (check_invalid_values(simulation) != 0)
+        return (NULL);
+    return (simulation);
 }
 void    *eat(void *arg)
 {
@@ -29,20 +33,15 @@ void    *eat(void *arg)
 }
 int main(int argc, char **argv)
 {
-    t_data  *data;
-    pthread_t   *n_of_threads;
-    int     i;
+    t_simulation      *simulation;
+    int         i;
 
-    n_of_threads = NULL;
     i = 0;
-    data = init_data(argc, argv);
-    if (!data)
-        return (printf("Data NULL to initialise\n"), EXIT_FAILURE);
-    while (i < data->number_of_philosophers)
-    {
-        pthread_create(&n_of_threads[i], NULL, eat, "I do");
-        pthread_join(n_of_threads[i], (void **)&(data->thread_exit_status[i]));
-        i++;
-    }
+    simulation = init_simulation(argc, argv);
+    if (!simulation)
+        return (printf("simulation NULL to initialise\n"), EXIT_FAILURE);
+    if (init_structs(simulation) != 0)
+        return (printf("Failed to initalise them\n"), 1);
+    printf("Managed to initalise them\n");
     return (0);
 }

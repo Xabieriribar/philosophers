@@ -5,22 +5,50 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifndef NULL 
 #define NULL 1
 #endif
 
-typedef struct s_data
+
+typedef struct s_fork
+{
+    pthread_mutex_t mutex;
+    int             index_for_debugging;
+}   t_fork;
+
+typedef struct s_philosopher
+{
+    pthread_t   philosopher_id;
+    int         last_meal;
+    t_fork      *left_fork;
+    t_fork      *right_fork;
+
+}   t_philosopher;
+typedef struct s_simulation
 {
     int number_of_philosophers;
     int time_to_die;
     int time_to_eat;
     int time_to_sleep;
     int number_of_times_each_philosopher_must_eat;
-    int *thread_exit_status;
-}   t_data;
+    int stop;
+    pthread_mutex_t stop_mutex;
+    t_philosopher   *philosophers;
+    t_fork          *forks;
+}   t_simulation;
+
 // ==============================================================================
 // UTILS
 // ==============================================================================
-int    ft_atoi(const char *str);
+int init_structs(t_simulation *simulation);
+// ==============================================================================
+// PARSER UTILS
+// ==============================================================================
+int     check_invalid_values(t_simulation *simulation);
+int     contains_alphas(char **argv);
+int     ft_atoi(const char *str);
+int     ft_isalpha(int c);
+
 #endif 

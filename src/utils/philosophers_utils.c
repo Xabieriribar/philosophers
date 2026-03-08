@@ -1,36 +1,15 @@
 #include "../../includes/philosophers.h"
 
-int    ft_isspace(int c)
+int init_structs(t_simulation *simulation)
 {
-    if (c == 9 || c == 10 || c == 11 || c == 12 || c == 13 || c == 32)
-        return (1);
-    return (0);
-}
+    int     i;
 
-int    ft_atoi(const char *str)
-{
-    int    result;
-    int    sign;
-    int    i;
-    
-    result = 0;
-    sign = 1;
     i = 0;
-    while (ft_isspace(str[i]))
-        i++;
-    if (str[i] == '+' && str[i + 1] != '-')
-        i++;
-    if (str[i] == '-')
-    {
-        sign = -1;
-        i++;
-    }
-    while (str[i] && str[i] >= 48 && str[i] <= 57)
-    {
-        result *= 10;
-	result += str[i] - 48;
-	i++;
-    }
-    result *= sign;
-    return (result);
+    simulation->philosophers = malloc(sizeof(struct s_philosopher *) * simulation->number_of_philosophers);
+    if (!simulation->philosophers)
+        return (1);
+    simulation->forks = malloc(sizeof(struct s_fork *) * simulation->number_of_philosophers);
+    simulation->philosophers[0].last_meal = 10;
+    printf("%d", simulation->philosophers[0].last_meal);
+    return (0);
 }
