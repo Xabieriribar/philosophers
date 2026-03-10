@@ -34,14 +34,14 @@ void    *eat(void *arg)
 int main(int argc, char **argv)
 {
     t_simulation      *simulation;
-    int         i;
 
-    i = 0;
     simulation = init_simulation(argc, argv);
     if (!simulation)
         return (printf("simulation NULL to initialise\n"), EXIT_FAILURE);
     if (init_structs(simulation) != 0)
         return (printf("Failed to initalise them\n"), 1);
+    if (start_simulation(simulation) != 0)
+        return (printf("Failed to start simulation"), 1);
     printf("Managed to initalise them\n");
     return (0);
 }

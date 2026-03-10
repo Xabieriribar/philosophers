@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/time.h>
 #include <stdlib.h>
 
 #ifndef NULL 
@@ -20,10 +21,12 @@ typedef struct s_fork
 
 typedef struct s_philosopher
 {
-    pthread_t   philosopher_id;
+    int         philosopher_id;
     int         last_meal;
-    t_fork      *left_fork;
-    t_fork      *right_fork;
+    t_fork      left_fork;
+    t_fork      right_fork;
+    struct s_simulation *simulation_p;
+    pthread_t   thread_handle;
 
 }   t_philosopher;
 typedef struct s_simulation
@@ -43,6 +46,7 @@ typedef struct s_simulation
 // UTILS
 // ==============================================================================
 int init_structs(t_simulation *simulation);
+int start_simulation(t_simulation *simulation);
 // ==============================================================================
 // PARSER UTILS
 // ==============================================================================
