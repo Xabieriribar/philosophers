@@ -32,6 +32,7 @@ typedef struct s_philosopher
 typedef struct s_simulation
 {
     int number_of_philosophers;
+    int simulation_start_time;
     int time_to_die;
     int time_to_eat;
     int time_to_sleep;
@@ -45,8 +46,10 @@ typedef struct s_simulation
 // ==============================================================================
 // UTILS
 // ==============================================================================
-int init_structs(t_simulation *simulation);
-int start_simulation(t_simulation *simulation);
+int     init_structs(t_simulation *simulation);
+int     start_simulation(t_simulation *simulation);
+int     is_dead(t_philosopher *philosopher);
+int     is_even(int n);
 // ==============================================================================
 // PARSER UTILS
 // ==============================================================================

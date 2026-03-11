@@ -77,3 +77,17 @@ int init_structs(t_simulation *simulation)
     // print_philosophers_and_their_forks(simulation);
     return (0);
 }
+
+int     is_dead(t_philosopher *philosopher)
+{
+    if (philosopher->last_meal > philosopher->simulation_p->simulation_start_time + philosopher->simulation_p->time_to_die)
+        return (1);
+    return (0);
+}
+
+int is_even(int n)
+{
+    if (n % 2 != 0)
+        return (1);
+    return (0);
+}
