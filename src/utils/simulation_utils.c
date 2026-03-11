@@ -1,5 +1,12 @@
 #include "../../includes/philosophers.h"
 
+void    print_message(t_simulation *simulation, int message_type, int philosopher_id)
+{
+    pthread_mutex_lock(&(simulation->stdout_mutex));
+    if (message_type == PRINT_MESSAGE_DIE)
+        printf("%d %d died", set_time(), philosopher_id);
+    pthread_mutex_unlock(&(simulation->stdout_mutex));
+}
 void    *start_monitoring_routine(void *void_simulation_struct)
 {
     t_simulation    *simulation;
@@ -10,9 +17,16 @@ void    *start_monitoring_routine(void *void_simulation_struct)
     {
         i = 0;
         if (is_dead(&(simulation->philosophers[i])))
+        {
+            print_message(simulation, PRINT_MESSAGE_DIE, simulation->philosopher_id);
+            pthread_mutex_lock(&(simulation->stop_mutex));
+            simulation->stop = 1;
+            pthread_mutex_unlock(&(simulation->stop_mutex));
             return (NULL);
-        
 
+        }
+
+        if ()
         i++;
     
     }
@@ -20,14 +34,11 @@ void    *start_monitoring_routine(void *void_simulation_struct)
 
 int     eat(t_philosopher *philosophers)
 {
-    struct timeval time_struct;
-
     if (is_even(philosophers->philosopher_id) != 0)
     {
         pthread_mutex_lock(&(philosophers->left_fork));
         pthread_mutex_lock(&(philosophers->right_fork));
-        gettimeofday(&time_struct, NULL);
-        philosophers->last_meal = time_struct.tv_usec;
+        philosophers->last_meal = set_time();
         usleep(philosophers->simulation_p->time_to_sleep);
     }
     else
@@ -37,38 +48,24 @@ int     eat(t_philosopher *philosophers)
     }
     return (0);
 }
+
 void    *start_philo_routine(void *void_philosopher_struct)
 {
     t_philosopher *philosophers;
 
     philosophers = (t_philosopher *)void_philosopher_struct;
     eat(philosophers);
-    // sleep(philosophers);
-    // think(philosophers);
-    // printf("Philosopher number %d\n", philosophers->philosopher_id);
-    // printf("His left fork number is %d\n", philosophers->left_fork.index_for_debugging);
-    // printf("His right fork number is %d\n", philosophers->right_fork.index_for_debugging);
     return (NULL);
 }
-int set_time(t_simulation   *simulation)
-{
-    struct timeval  time_struct;
-    int             i;
 
-    i = 0;
-    gettimeofday(&time_struct, NULL);
-    while (i < simulation->number_of_philosophers)
-        simulation->philosophers[i++].last_meal = time_struct.tv_usec;
-    simulation->simulation_start_time = time_struct.tv_usec; 
-    return (0);
-}
+
 int start_simulation(t_simulation *simulation)
 {
     int i;
     pthread_t       monitor_thread_handle;
 
     i = 0;
-    set_time(simulation);
+    set_simulation_time(simulation);
     while (i < simulation->number_of_philosophers)
     {
         pthread_create(&(simulation->philosophers[i].thread_handle), NULL, start_philo_routine, &(simulation->philosophers[i]));

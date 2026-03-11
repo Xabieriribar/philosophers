@@ -15,6 +15,7 @@ t_simulation *init_simulation(int argc, char **argv)
     simulation->time_to_die = ft_atoi(argv[2]);
     simulation->time_to_eat = ft_atoi(argv[3]);
     simulation->time_to_sleep = ft_atoi(argv[4]);
+    simulation->stop = 0;
     if (argv[5])
         simulation->number_of_times_each_philosopher_must_eat = ft_atoi(argv[5]);
     else
@@ -23,14 +24,7 @@ t_simulation *init_simulation(int argc, char **argv)
         return (NULL);
     return (simulation);
 }
-void    *eat(void *arg)
-{
-    char    *text;
 
-    text = (char *)arg;
-    printf("%s\n", text);
-    return (NULL);
-}
 int main(int argc, char **argv)
 {
     t_simulation      *simulation;
