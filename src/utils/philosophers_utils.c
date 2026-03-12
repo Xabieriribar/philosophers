@@ -34,3 +34,19 @@ int set_simulation_time(t_simulation   *simulation)
     simulation->simulation_start_time = time_struct.tv_usec; 
     return (0);
 }
+
+int ft_usleep(int waiting_time, t_philosopher *philosopher)
+{
+    int time_before_loop;
+
+    time_before_loop = set_time();
+    while ((set_time() - time_before_loop) < waiting_time)
+    {
+        pthread_mutex_lock(&(philosopher->simulation_p->stop_mutex));
+        if (philosopher->simulation_p->stop)
+            break ;
+        pthread_mutex_unlock(&(philosopher->simulation_p->stop_mutex));
+        usleep(500);
+    }
+    return (0);
+}

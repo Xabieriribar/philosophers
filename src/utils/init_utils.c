@@ -54,8 +54,8 @@ int init_philosophers(t_simulation *simulation)
             simulation->philosophers[i].left_fork = simulation->forks[simulation->number_of_philosophers - 1];
         else
             simulation->philosophers[i].left_fork = simulation->forks[i - 1];
-        simulation->philosophers[i].right_fork = simulation->forks[i];
-        simulation->philosophers[i].simulation_p = simulation;
+        if (simulation->number_of_philosophers != 1)
+            simulation->philosophers[i].right_fork = simulation->forks[i];
         philosopher_id++;
         i++;
     }

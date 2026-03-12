@@ -16,6 +16,10 @@
 #define PRINT_MESSAGE_DIE 1
 #endif 
 
+#ifndef PRINT_MESSAGE_EAT
+#define PRINT_MESSAGE_EAT 2
+#endif 
+
 
 typedef struct s_fork
 {
@@ -44,6 +48,7 @@ typedef struct s_simulation
     int stop;
     pthread_mutex_t stdout_mutex;
     pthread_mutex_t stop_mutex;
+    pthread_mutex_t last_meal_mutex; 
     t_philosopher   *philosophers;
     t_fork          *forks;
 }   t_simulation;
@@ -56,6 +61,8 @@ int     start_simulation(t_simulation *simulation);
 int     is_dead(t_philosopher *philosopher);
 int     is_even(int n);
 int     set_time();
+int     ft_usleep(int waiting_time, t_philosopher *philosopher);
+int     set_simulation_time(t_simulation   *simulation);
 // ==============================================================================
 // PARSER UTILS
 // ==============================================================================
