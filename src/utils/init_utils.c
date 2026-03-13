@@ -1,26 +1,26 @@
 #include "../../includes/philosophers.h"
 
-// int print_philosophers_and_their_forks(t_simulation *simulation)
-// {
-//     int i = 0;
-//     while (i < simulation->number_of_philosophers)
-//     {
-//         if (i == 0)
-//         {
-//             printf("<<< GENERAL INFORMATION >>>\n");
-//             printf("Number of philosophers: %d\n", simulation->number_of_philosophers);
-//             printf("Time to die: %d\n", simulation->time_to_die);
-//             printf("Time to sleep: %d\n", simulation->time_to_sleep);
-//             printf("Time to eat: %d\n", simulation->time_to_eat);
-//             printf("Number of times each philosopher must eat: %d\n", simulation->number_of_times_each_philosopher_must_eat);
-//         }
-//         printf("Philosopher number %d\n", simulation->philosophers[i].philosopher_id);
-//         printf("His left fork number is %d\n", simulation->philosophers[i].left_fork.index_for_debugging);
-//         printf("His right fork number is %d\n", simulation->philosophers[i].right_fork.index_for_debugging);
-//         i++;
-//     }
-//     return (0);
-// }
+int print_philosophers_and_their_forks(t_simulation *simulation)
+{
+    int i = 0;
+    while (i < simulation->number_of_philosophers)
+    {
+        if (i == 0)
+        {
+            printf("<<< GENERAL INFORMATION >>>\n");
+            printf("Number of philosophers: %d\n", simulation->number_of_philosophers);
+            printf("Time to die: %d\n", simulation->time_to_die);
+            printf("Time to sleep: %d\n", simulation->time_to_sleep);
+            printf("Time to eat: %d\n", simulation->time_to_eat);
+            printf("Number of times each philosopher must eat: %d\n", simulation->number_of_times_each_philosopher_must_eat);
+        }
+        printf("Philosopher number %d\n", simulation->philosophers[i].philosopher_id);
+        printf("His left fork number is %d\n", simulation->philosophers[i].left_fork->index_for_debugging);
+        printf("His right fork number is %d\n", simulation->philosophers[i].right_fork->index_for_debugging);
+        i++;
+    }
+    return (0);
+}
 
 int init_mutexes(t_simulation *simulation)
 {
@@ -60,7 +60,7 @@ int init_philosophers(t_simulation *simulation)
             simulation->philosophers[i].right_fork = &simulation->forks[i];
         else
             simulation->philosophers[i].right_fork = NULL;
-        simulation->philosophers->simulation_p = simulation;
+        simulation->philosophers[i].simulation_p = simulation;
         philosopher_id++;
         i++;
     }

@@ -45,6 +45,14 @@
 #define PRINT_MESSAGE_FORK 8
 #endif 
 
+#ifndef PRINT_MESSAGE_SLEEP
+#define PRINT_MESSAGE_SLEEP 9
+#endif
+
+#ifndef PRINT_MESSAGE_THINK
+#define PRINT_MESSAGE_THINK 10
+#endif
+
 typedef struct s_fork
 {
     pthread_mutex_t mutex;

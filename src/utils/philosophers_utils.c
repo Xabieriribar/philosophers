@@ -2,7 +2,7 @@
 
 int     is_dead(t_philosopher *philosopher)
 {
-    if (set_time() > philosopher->last_meal + philosopher->simulation_p->time_to_die)
+    if (set_time() - philosopher->last_meal > philosopher->simulation_p->time_to_die)
         return (1);
     return (0);
 }
@@ -19,21 +19,17 @@ int set_time()
     struct timeval  time_struct;
 
     gettimeofday(&time_struct, NULL);
-    return (time_struct.tv_usec);
+    return ((time_struct.tv_sec * 1000) + (time_struct.tv_usec / 1000));
 }
 
 int set_simulation_time(t_simulation   *simulation)
 {
-    struct timeval  time_struct;
     int             i;
 
     i = 0;
-    gettimeofday(&time_struct, NULL);
     while (i < simulation->number_of_philosophers)
-    {
-        simulation->philosophers[i++].last_meal = time_struct.tv_usec;
-    }
-    simulation->simulation_start_time = time_struct.tv_usec; 
+        simulation->philosophers[i++].last_meal = set_time();
+    simulation->simulation_start_time = set_time(); 
     return (0);
 }
 
