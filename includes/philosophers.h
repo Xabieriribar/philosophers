@@ -20,6 +20,30 @@
 #define PRINT_MESSAGE_EAT 2
 #endif 
 
+#ifndef IS_DEAD
+#define IS_DEAD 3
+#endif 
+
+#ifndef PHILOSOPHER_ATE
+#define PHILOSOPHER_ATE 4
+#endif 
+
+
+#ifndef READ_STOP_FLAG
+#define READ_STOP_FLAG 5
+#endif 
+
+#ifndef LOCK_FORKS
+#define LOCK_FORKS 6
+#endif 
+
+#ifndef UNLOCK_FORKS
+#define UNLOCK_FORKS 7
+#endif 
+
+#ifndef PRINT_MESSAGE_FORK
+#define PRINT_MESSAGE_FORK 8
+#endif 
 
 typedef struct s_fork
 {
@@ -31,8 +55,8 @@ typedef struct s_philosopher
 {
     int         philosopher_id;
     int         last_meal;
-    t_fork      left_fork;
-    t_fork      right_fork;
+    t_fork      *left_fork;
+    t_fork      *right_fork;
     struct s_simulation *simulation_p;
     pthread_t   thread_handle;
 
@@ -71,4 +95,8 @@ int     contains_alphas(char **argv);
 int     ft_atoi(const char *str);
 int     ft_isalpha(int c);
 
+int     check_last_meal_mutex(t_philosopher *philosopher, int mode);
+void    check_fork_mutexes(pthread_mutex_t first_fork, pthread_mutex_t second_fork, int mode);
+int     check_stop_mutex(t_simulation *simulation, int mode);
+void    print_message(t_simulation *simulation, int message_type, int philosopher_id);
 #endif 
