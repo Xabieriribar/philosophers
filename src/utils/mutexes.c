@@ -19,17 +19,17 @@ int check_last_meal_mutex(t_philosopher *philosopher, int mode)
     return (value);
 }
 
-void    check_fork_mutexes(pthread_mutex_t first_fork, pthread_mutex_t second_fork, int mode)
+void    check_fork_mutexes(t_philosopher *philosopher, int mode)
 {
     if (mode == LOCK_FORKS)
     {
-        pthread_mutex_lock(&(first_fork));
-        pthread_mutex_lock(&(second_fork));
+        pthread_mutex_lock(&(philosopher->left_fork->mutex));
+        pthread_mutex_lock(&(philosopher->right_fork->mutex));
     }
     else if (mode == UNLOCK_FORKS)
     {
-        pthread_mutex_lock(&(first_fork));
-        pthread_mutex_lock(&(second_fork));
+        pthread_mutex_lock(&(philosopher->left_fork->mutex));
+        pthread_mutex_lock(&(philosopher->right_fork->mutex));
     }
 }
 

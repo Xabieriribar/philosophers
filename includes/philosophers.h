@@ -96,7 +96,7 @@ int     ft_atoi(const char *str);
 int     ft_isalpha(int c);
 
 int     check_last_meal_mutex(t_philosopher *philosopher, int mode);
-void    check_fork_mutexes(pthread_mutex_t first_fork, pthread_mutex_t second_fork, int mode);
+void    check_fork_mutexes(t_philosopher *philosopher, int mode);
 int     check_stop_mutex(t_simulation *simulation, int mode);
 void    print_message(t_simulation *simulation, int message_type, int philosopher_id);
 #endif 

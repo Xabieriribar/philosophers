@@ -18,7 +18,6 @@ void    *start_monitoring_routine(void *void_simulation_struct)
                 print_message(simulation, PRINT_MESSAGE_DIE, simulation->philosophers[i].philosopher_id);
                 return (NULL);
             }
-            // if ()
             i++;
         }
     }
@@ -27,21 +26,22 @@ void    *start_monitoring_routine(void *void_simulation_struct)
 
 int     eat(t_philosopher *philosophers)
 {
+    if (philosophers->simulation_p->number_of_philosophers == 1)
+    {
+        pthread_mutex_lock(&(philosophers->left_fork->mutex));
+        print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK, philosophers->philosopher_id);
+        while (1)
+        {
+            if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
+                return (1);
+        }
+    }
     if (is_even(philosophers->philosopher_id) != 0)
     {
         pthread_mutex_lock(&(philosophers->left_fork->mutex));
         print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK, philosophers->philosopher_id);
-        if (philosophers->simulation_p->number_of_philosophers != 1)
-            pthread_mutex_lock(&(philosophers->right_fork->mutex));
-        else
-        {
-            while (1)
-            {
-                if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
-                    return (1);
-            }
-        }
-        // check_fork_mutexes(philosophers->left_fork->mutex, philosophers->right_fork->mutex, LOCK_FORKS);
+        pthread_mutex_lock(&(philosophers->right_fork->mutex));
+        print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK, philosophers->philosopher_id);
         check_last_meal_mutex(philosophers, PHILOSOPHER_ATE);
         if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
             return (1);
@@ -51,12 +51,15 @@ int     eat(t_philosopher *philosophers)
             check_stop_mutex(philosophers->simulation_p, IS_DEAD);
             return (1);
         }
-        check_fork_mutexes(philosophers->left_fork->mutex, philosophers->right_fork->mutex, UNLOCK_FORKS);
+        pthread_mutex_unlock(&(philosophers->left_fork->mutex));
+        pthread_mutex_unlock(&(philosophers->right_fork->mutex));
     }
     else
     {
-
-        check_fork_mutexes(philosophers->right_fork->mutex, philosophers->left_fork->mutex, LOCK_FORKS);
+        pthread_mutex_lock(&(philosophers->right_fork->mutex));
+        print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK, philosophers->philosopher_id);
+        pthread_mutex_lock(&(philosophers->left_fork->mutex));
+        print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK, philosophers->philosopher_id);
         check_last_meal_mutex(philosophers, PHILOSOPHER_ATE);
         if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
             return (1);
@@ -66,7 +69,8 @@ int     eat(t_philosopher *philosophers)
             check_stop_mutex(philosophers->simulation_p, IS_DEAD);
             return (1);
         }
-        check_fork_mutexes(philosophers->right_fork->mutex, philosophers->left_fork->mutex, UNLOCK_FORKS);
+        pthread_mutex_unlock(&(philosophers->right_fork->mutex));
+        pthread_mutex_unlock(&(philosophers->left_fork->mutex));
     }
     return (0);
 }
