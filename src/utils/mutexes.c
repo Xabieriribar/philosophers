@@ -53,15 +53,16 @@ void    print_message(t_simulation *simulation, int message_type, int philosophe
     pthread_mutex_lock(&(simulation->stdout_mutex));
     if (message_type == PRINT_MESSAGE_DIE)
     {
+        usleep(10000);
         printf("%d %d died\n", set_time() - simulation->simulation_start_time, philosopher_id);
     }
-    else if (message_type == PRINT_MESSAGE_EAT)
+    else if (message_type == PRINT_MESSAGE_EAT && !check_stop_mutex(simulation, READ_STOP_FLAG))
         printf("%d %d is eating\n", set_time() - simulation->simulation_start_time, philosopher_id);
-    else if (message_type == PRINT_MESSAGE_FORK)
+    else if (message_type == PRINT_MESSAGE_FORK && !check_stop_mutex(simulation, READ_STOP_FLAG))
         printf("%d %d has taken a fork\n", set_time() - simulation->simulation_start_time, philosopher_id);
-    else if (message_type == PRINT_MESSAGE_SLEEP)
+    else if (message_type == PRINT_MESSAGE_SLEEP && !check_stop_mutex(simulation, READ_STOP_FLAG))
         printf("%d %d is sleeping\n", set_time() - simulation->simulation_start_time, philosopher_id);
-    else if (message_type == PRINT_MESSAGE_THINK)
+    else if (message_type == PRINT_MESSAGE_THINK && !check_stop_mutex(simulation, READ_STOP_FLAG))
         printf("%d %d is thinking\n", set_time() - simulation->simulation_start_time, philosopher_id);
     else
         check_stop_mutex(simulation, IS_DEAD);
@@ -73,7 +74,7 @@ int check_if_all_philosophers_ate(t_philosopher *philosopher, int flag)
     int i;
     int j;
 
-    pthread_mutex_lock(&(philosopher->meals_eaten_mutex));
+    pthread_mutex_lock(&(philosopher->simulation_p->meals_eaten_mutex));
     j = 0;
     i = 0;
     if (flag == I_ATE)
@@ -88,9 +89,9 @@ int check_if_all_philosophers_ate(t_philosopher *philosopher, int flag)
             if (philosopher->simulation_p->philosophers[i].is_full)
                 j++;
             if (j == philosopher->simulation_p->number_of_philosophers)
-                return (pthread_mutex_unlock(&(philosopher->meals_eaten_mutex)), 1);
+                return (pthread_mutex_unlock(&(philosopher->simulation_p->meals_eaten_mutex)), 1);
             i++;
         }
     }
-    return (pthread_mutex_unlock(&(philosopher->meals_eaten_mutex)), 0);
+    return (pthread_mutex_unlock(&(philosopher->simulation_p->meals_eaten_mutex)), 0);
 }

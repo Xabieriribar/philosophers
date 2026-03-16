@@ -74,7 +74,6 @@ typedef struct s_philosopher
     t_fork      *left_fork;
     t_fork      *right_fork;
     struct s_simulation *simulation_p;
-    pthread_mutex_t meals_eaten_mutex;
     int         meals_eaten;
     int         is_full;
     pthread_t   thread_handle;
@@ -92,6 +91,7 @@ typedef struct s_simulation
     pthread_mutex_t stdout_mutex;
     pthread_mutex_t stop_mutex;
     pthread_mutex_t last_meal_mutex; 
+    pthread_mutex_t meals_eaten_mutex;
     t_philosopher   *philosophers;
     t_fork          *forks;
 }   t_simulation;

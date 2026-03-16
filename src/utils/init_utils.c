@@ -32,10 +32,10 @@ int init_mutexes(t_simulation *simulation)
     pthread_mutex_init(&(simulation->last_meal_mutex), NULL);
     pthread_mutex_init(&(simulation->stop_mutex), NULL);
     pthread_mutex_init(&(simulation->stdout_mutex), NULL);
+    pthread_mutex_init(&(simulation->meals_eaten_mutex), NULL);
     while (i < simulation->number_of_philosophers)
     {
         pthread_mutex_init(&(simulation->forks[i].mutex), NULL);
-        pthread_mutex_init(&(simulation->philosophers[i].meals_eaten_mutex), NULL);
         simulation->forks[i].index_for_debugging = i;
         i++;
     }

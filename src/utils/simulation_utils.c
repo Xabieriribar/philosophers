@@ -24,27 +24,28 @@ void    *start_monitoring_routine(void *void_simulation_struct)
             }
             i++;
         }
+        usleep(10000);
     }
     return (NULL);
 }
 
-void    assign_forks(pthread_mutex_t *first, pthread_mutex_t *second, t_philosopher *philosophers)
+void    assign_forks(pthread_mutex_t **first, pthread_mutex_t **second, t_philosopher *philosophers)
 {
     if (is_even(philosophers->philosopher_id) != 0)
     {
-        *first = philosophers->left_fork->mutex;
-        *second = philosophers->right_fork->mutex;
+        *first = &(philosophers->left_fork->mutex);
+        *second = &(philosophers->right_fork->mutex);
     }
     else
     {
-        *first = philosophers->right_fork->mutex;
-        *second = philosophers->left_fork->mutex;
+        *first = &(philosophers->right_fork->mutex);
+        *second = &(philosophers->left_fork->mutex);
     }
 }
 int     eat(t_philosopher *philosophers)
 {
-    pthread_mutex_t first;
-    pthread_mutex_t second;
+    pthread_mutex_t *first;
+    pthread_mutex_t *second;
     // if (philosophers->simulation_p->number_of_philosophers == 1)
     // {
     //     pthread_mutex_lock(&(philosophers->left_fork->mutex));
@@ -56,15 +57,15 @@ int     eat(t_philosopher *philosophers)
     //     }
     // }
     assign_forks(&first, &second, philosophers);
-    pthread_mutex_lock(&(first));
+    pthread_mutex_lock(first);
     if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
-        return (pthread_mutex_unlock(&(first)), 1);
+        return (pthread_mutex_unlock(first), 1);
     print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK, philosophers->philosopher_id);
-    pthread_mutex_lock(&(second));
+    pthread_mutex_lock(second);
     if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
     {
-        pthread_mutex_unlock(&(first));
-        return (pthread_mutex_unlock(&(second)), 1);
+        pthread_mutex_unlock(first);
+        return (pthread_mutex_unlock(second), 1);
     }
     print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK, philosophers->philosopher_id);
     check_last_meal_mutex(philosophers, PHILOSOPHER_ATE);
@@ -72,11 +73,11 @@ int     eat(t_philosopher *philosophers)
     check_if_all_philosophers_ate(philosophers, I_ATE);
     if (ft_usleep(philosophers->simulation_p->time_to_eat, philosophers) != 0)
     {
-        pthread_mutex_unlock(&(first));
-        return (pthread_mutex_unlock(&(second)), 1);
+        pthread_mutex_unlock(first);
+        return (pthread_mutex_unlock(second), 1);
     }
-    pthread_mutex_unlock(&(philosophers->left_fork->mutex));
-    pthread_mutex_unlock(&(philosophers->right_fork->mutex));
+    pthread_mutex_unlock(first);
+    pthread_mutex_unlock(second);
     return (0);
 }
 
@@ -92,7 +93,7 @@ void    *start_philo_routine(void *void_philosopher_struct)
         if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
             break ;
         print_message(philosophers->simulation_p, PRINT_MESSAGE_SLEEP, philosophers->philosopher_id);
-        if (ft_usleep(philosophers->simulation_p->time_to_eat, philosophers) != 0)
+        if (ft_usleep(philosophers->simulation_p->time_to_sleep, philosophers) != 0)
             break ;
         print_message(philosophers->simulation_p, PRINT_MESSAGE_THINK, philosophers->philosopher_id);
     }
