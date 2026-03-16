@@ -1,5 +1,5 @@
-#ifndef MINISHELL_H
-# define MINISHELL_H
+#ifndef PHILOSOPHERS_H
+# define PHILOSOPHERS_H
 
 #include <pthread.h>
 #include <unistd.h>
@@ -70,7 +70,7 @@ typedef struct s_fork
 typedef struct s_philosopher
 {
     int         philosopher_id;
-    int         last_meal;
+    long        last_meal;
     t_fork      *left_fork;
     t_fork      *right_fork;
     struct s_simulation *simulation_p;
@@ -82,7 +82,7 @@ typedef struct s_philosopher
 typedef struct s_simulation
 {
     int number_of_philosophers;
-    int simulation_start_time;
+    long simulation_start_time;
     int time_to_die;
     int time_to_eat;
     int time_to_sleep;
@@ -103,7 +103,7 @@ int     init_structs(t_simulation *simulation);
 int     start_simulation(t_simulation *simulation);
 int     is_dead(t_philosopher *philosopher);
 int     is_even(int n);
-int     set_time();
+long    set_time();
 int     ft_usleep(int waiting_time, t_philosopher *philosopher);
 int     set_simulation_time(t_simulation   *simulation);
 // ==============================================================================

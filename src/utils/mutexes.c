@@ -52,18 +52,15 @@ void    print_message(t_simulation *simulation, int message_type, int philosophe
 {
     pthread_mutex_lock(&(simulation->stdout_mutex));
     if (message_type == PRINT_MESSAGE_DIE)
-    {
-        usleep(10000);
-        printf("%d %d died\n", set_time() - simulation->simulation_start_time, philosopher_id);
-    }
+        printf("%ld %d died\n", set_time() - simulation->simulation_start_time, philosopher_id);
     else if (message_type == PRINT_MESSAGE_EAT && !check_stop_mutex(simulation, READ_STOP_FLAG))
-        printf("%d %d is eating\n", set_time() - simulation->simulation_start_time, philosopher_id);
+        printf("%ld %d is eating\n", set_time() - simulation->simulation_start_time, philosopher_id);
     else if (message_type == PRINT_MESSAGE_FORK && !check_stop_mutex(simulation, READ_STOP_FLAG))
-        printf("%d %d has taken a fork\n", set_time() - simulation->simulation_start_time, philosopher_id);
+        printf("%ld %d has taken a fork\n", set_time() - simulation->simulation_start_time, philosopher_id);
     else if (message_type == PRINT_MESSAGE_SLEEP && !check_stop_mutex(simulation, READ_STOP_FLAG))
-        printf("%d %d is sleeping\n", set_time() - simulation->simulation_start_time, philosopher_id);
+        printf("%ld %d is sleeping\n", set_time() - simulation->simulation_start_time, philosopher_id);
     else if (message_type == PRINT_MESSAGE_THINK && !check_stop_mutex(simulation, READ_STOP_FLAG))
-        printf("%d %d is thinking\n", set_time() - simulation->simulation_start_time, philosopher_id);
+        printf("%ld %dis thinking\n", set_time() - simulation->simulation_start_time, philosopher_id);
     else
         check_stop_mutex(simulation, IS_DEAD);
     pthread_mutex_unlock(&(simulation->stdout_mutex));

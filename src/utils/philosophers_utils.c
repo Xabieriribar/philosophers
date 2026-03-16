@@ -14,7 +14,7 @@ int is_even(int n)
     return (0);
 }
 
-int set_time()
+long    set_time()
 {
     struct timeval  time_struct;
 
