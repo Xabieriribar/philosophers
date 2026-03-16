@@ -17,7 +17,9 @@ t_simulation *init_simulation(int argc, char **argv)
     simulation->time_to_sleep = ft_atoi(argv[4]);
     simulation->stop = 0;
     if (argv[5])
+    {
         simulation->number_of_times_each_philosopher_must_eat = ft_atoi(argv[5]);
+    }
     else
         simulation->number_of_times_each_philosopher_must_eat = -1;
     if (check_invalid_values(simulation) != 0)
@@ -31,7 +33,7 @@ int main(int argc, char **argv)
 
     simulation = init_simulation(argc, argv);
     if (!simulation)
-        return (printf("simulation NULL to initialise\n"), EXIT_FAILURE);
+        return (printf("Invalid arguments. Usage: ./philo number_of_philosophers time_to_die time_to_eat time_to_sleep [number_of_times_each_philosopher_must_eat]\n"), EXIT_FAILURE);
     if (init_structs(simulation) != 0)
         return (printf("Failed to initalise them\n"), 1);
     if (start_simulation(simulation) != 0)

@@ -17,7 +17,7 @@ void    *start_monitoring_routine(void *void_simulation_struct)
                 print_message(simulation, PRINT_MESSAGE_DIE, simulation->philosophers[i].philosopher_id);
                 return (NULL);
             }
-            else if (check_if_all_philosophers_ate(&(simulation->philosophers[i]), CHECK_IF_FULL) && simulation->number_of_times_each_philosopher_must_eat != -1)
+            if (simulation->number_of_times_each_philosopher_must_eat != -1 && check_if_all_philosophers_ate(&(simulation->philosophers[i]), CHECK_IF_FULL))
             {
                 print_message(simulation, ALL_PHILOSOPHERS_ATE, 0);
                 return (NULL);
@@ -46,16 +46,7 @@ int     eat(t_philosopher *philosophers)
 {
     pthread_mutex_t *first;
     pthread_mutex_t *second;
-    if (philosophers->simulation_p->number_of_philosophers == 1)
-    {
-        pthread_mutex_lock(&(philosophers->left_fork->mutex));
-        print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK, philosophers->philosopher_id);
-        while (1)
-        {
-            if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
-                return (1);
-        }
-    }
+
     assign_forks(&first, &second, philosophers);
     pthread_mutex_lock(first);
     if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
@@ -101,6 +92,23 @@ void    *start_philo_routine(void *void_philosopher_struct)
 }
 
 
+void    *handle_one_thread(void *single_philosopher_struct)
+{
+    t_philosopher *single_philosopher;
+
+    single_philosopher = (t_philosopher *)single_philosopher_struct;
+    pthread_mutex_lock(&(single_philosopher->left_fork->mutex));
+    print_message(single_philosopher->simulation_p, PRINT_MESSAGE_FORK, single_philosopher->philosopher_id);
+    while (1)
+    {
+        if (check_stop_mutex(single_philosopher->simulation_p, READ_STOP_FLAG) != 0)
+        {
+            pthread_mutex_unlock(&(single_philosopher->left_fork->mutex));
+            return (NULL);
+        }
+        pthread_mutex_unlock(&(single_philosopher->left_fork->mutex));
+    }
+}
 int start_simulation(t_simulation *simulation)
 {
     int i;
@@ -108,10 +116,15 @@ int start_simulation(t_simulation *simulation)
 
     i = 0;
     set_simulation_time(simulation);
-    while (i < simulation->number_of_philosophers)
+    if (simulation->number_of_philosophers == 1)
+        pthread_create(&(simulation->philosophers[i].thread_handle), NULL, handle_one_thread, &(simulation->philosophers[i]));
+    else
     {
-        pthread_create(&(simulation->philosophers[i].thread_handle), NULL, start_philo_routine, &(simulation->philosophers[i]));
-        i++;
+        while (i < simulation->number_of_philosophers)
+        {
+            pthread_create(&(simulation->philosophers[i].thread_handle), NULL, start_philo_routine, &(simulation->philosophers[i]));
+            i++;
+        }
     }
     pthread_create(&monitor_thread_handle, NULL, start_monitoring_routine, simulation);
     i = 0;

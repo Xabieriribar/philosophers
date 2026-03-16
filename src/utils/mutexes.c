@@ -38,7 +38,10 @@ void    print_message(t_simulation *simulation, int message_type, int philosophe
 {
     pthread_mutex_lock(&(simulation->stdout_mutex));
     if (message_type == PRINT_MESSAGE_DIE)
+    {
+        usleep(10000);
         printf("%ld %d died\n", set_time() - simulation->simulation_start_time, philosopher_id);
+    }
     else if (message_type == PRINT_MESSAGE_EAT && !check_stop_mutex(simulation, READ_STOP_FLAG))
         printf("%ld %d is eating\n", set_time() - simulation->simulation_start_time, philosopher_id);
     else if (message_type == PRINT_MESSAGE_FORK && !check_stop_mutex(simulation, READ_STOP_FLAG))
@@ -64,7 +67,7 @@ int check_if_all_philosophers_ate(t_philosopher *philosopher, int flag)
         philosopher->meals_eaten++;
     else if (flag == CHECK_IF_FULL)
     {
-        while (i < philosopher->simulation_p->number_of_philosophers && philosopher->simulation_p->philosophers[i].meals_eaten >= philosopher->simulation_p->number_of_times_each_philosopher_must_eat)
+        while (i < philosopher->simulation_p->number_of_philosophers && philosopher->simulation_p->philosophers[i].meals_eaten == philosopher->simulation_p->number_of_times_each_philosopher_must_eat)
             philosopher->simulation_p->philosophers[i++].is_full = 1;
         i = 0;
         while (i < philosopher->simulation_p->number_of_philosophers)
