@@ -35,6 +35,7 @@ int init_mutexes(t_simulation *simulation)
     while (i < simulation->number_of_philosophers)
     {
         pthread_mutex_init(&(simulation->forks[i].mutex), NULL);
+        pthread_mutex_init(&(simulation->philosophers[i].meals_eaten_mutex), NULL);
         simulation->forks[i].index_for_debugging = i;
         i++;
     }
@@ -61,6 +62,7 @@ int init_philosophers(t_simulation *simulation)
         else
             simulation->philosophers[i].right_fork = NULL;
         simulation->philosophers[i].simulation_p = simulation;
+        simulation->philosophers[i].meals_eaten = 0;
         philosopher_id++;
         i++;
     }

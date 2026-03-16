@@ -17,6 +17,11 @@ void    *start_monitoring_routine(void *void_simulation_struct)
                 print_message(simulation, PRINT_MESSAGE_DIE, simulation->philosophers[i].philosopher_id);
                 return (NULL);
             }
+            else if (check_if_all_philosophers_ate(&(simulation->philosophers[i]), CHECK_IF_FULL) && simulation->number_of_times_each_philosopher_must_eat != -1)
+            {
+                print_message(simulation, ALL_PHILOSOPHERS_ATE, 0);
+                return (NULL);
+            }
             i++;
         }
     }
@@ -64,6 +69,7 @@ int     eat(t_philosopher *philosophers)
     print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK, philosophers->philosopher_id);
     check_last_meal_mutex(philosophers, PHILOSOPHER_ATE);
     print_message(philosophers->simulation_p, PRINT_MESSAGE_EAT, philosophers->philosopher_id);
+    check_if_all_philosophers_ate(philosophers, I_ATE);
     if (ft_usleep(philosophers->simulation_p->time_to_eat, philosophers) != 0)
     {
         pthread_mutex_unlock(&(first));
@@ -79,7 +85,7 @@ void    *start_philo_routine(void *void_philosopher_struct)
     t_philosopher *philosophers;
 
     philosophers = (t_philosopher *)void_philosopher_struct;
-    while (!check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG))
+    while (!check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) && !check_if_all_philosophers_ate(philosophers, CHECK_IF_FULL))
     {
         if (eat(philosophers) != 0)
             break ;

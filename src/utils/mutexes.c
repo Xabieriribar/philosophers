@@ -59,5 +59,38 @@ void    print_message(t_simulation *simulation, int message_type, int philosophe
         printf("%d %d is eating\n", set_time() - simulation->simulation_start_time, philosopher_id);
     else if (message_type == PRINT_MESSAGE_FORK)
         printf("%d %d has taken a fork\n", set_time() - simulation->simulation_start_time, philosopher_id);
+    else if (message_type == PRINT_MESSAGE_SLEEP)
+        printf("%d %d is sleeping\n", set_time() - simulation->simulation_start_time, philosopher_id);
+    else if (message_type == PRINT_MESSAGE_THINK)
+        printf("%d %d is thinking\n", set_time() - simulation->simulation_start_time, philosopher_id);
+    else
+        check_stop_mutex(simulation, IS_DEAD);
     pthread_mutex_unlock(&(simulation->stdout_mutex));
+}
+
+int check_if_all_philosophers_ate(t_philosopher *philosopher, int flag)
+{
+    int i;
+    int j;
+
+    pthread_mutex_lock(&(philosopher->meals_eaten_mutex));
+    j = 0;
+    i = 0;
+    if (flag == I_ATE)
+        philosopher->meals_eaten++;
+    else if (flag == CHECK_IF_FULL)
+    {
+        while (philosopher->simulation_p->philosophers[i].meals_eaten == philosopher->simulation_p->number_of_times_each_philosopher_must_eat && i < philosopher->simulation_p->number_of_philosophers)
+            philosopher->simulation_p->philosophers[i++].is_full = 1;
+        i = 0;
+        while (i < philosopher->simulation_p->number_of_philosophers)
+        {
+            if (philosopher->simulation_p->philosophers[i].is_full)
+                j++;
+            if (j == philosopher->simulation_p->number_of_philosophers)
+                return (pthread_mutex_unlock(&(philosopher->meals_eaten_mutex)), 1);
+            i++;
+        }
+    }
+    return (pthread_mutex_unlock(&(philosopher->meals_eaten_mutex)), 0);
 }

@@ -8,10 +8,6 @@
 #include <sys/time.h>
 #include <stdlib.h>
 
-#ifndef NULL 
-#define NULL 1
-#endif
-
 #ifndef PRINT_MESSAGE_DIE
 #define PRINT_MESSAGE_DIE 1
 #endif 
@@ -53,6 +49,18 @@
 #define PRINT_MESSAGE_THINK 10
 #endif
 
+#ifndef ALL_PHILOSOPHERS_ATE
+#define ALL_PHILOSOPHERS_ATE 11
+#endif
+
+#ifndef I_ATE
+#define I_ATE 12
+#endif
+
+#ifndef CHECK_IF_FULL
+#define CHECK_IF_FULL 13
+#endif
+
 typedef struct s_fork
 {
     pthread_mutex_t mutex;
@@ -66,6 +74,9 @@ typedef struct s_philosopher
     t_fork      *left_fork;
     t_fork      *right_fork;
     struct s_simulation *simulation_p;
+    pthread_mutex_t meals_eaten_mutex;
+    int         meals_eaten;
+    int         is_full;
     pthread_t   thread_handle;
 
 }   t_philosopher;
@@ -107,4 +118,5 @@ int     check_last_meal_mutex(t_philosopher *philosopher, int mode);
 void    check_fork_mutexes(t_philosopher *philosopher, int mode);
 int     check_stop_mutex(t_simulation *simulation, int mode);
 void    print_message(t_simulation *simulation, int message_type, int philosopher_id);
+int     check_if_all_philosophers_ate(t_philosopher *philosopher, int flag);
 #endif 
