@@ -81,12 +81,12 @@ typedef struct s_philosopher
 }   t_philosopher;
 typedef struct s_simulation
 {
-    int number_of_philosophers;
+    long number_of_philosophers;
     long simulation_start_time;
-    int time_to_die;
-    int time_to_eat;
-    int time_to_sleep;
-    int number_of_times_each_philosopher_must_eat;
+    long time_to_die;
+    long time_to_eat;
+    long time_to_sleep;
+    long number_of_times_each_philosopher_must_eat;
     int stop;
     pthread_mutex_t stdout_mutex;
     pthread_mutex_t stop_mutex;
@@ -104,14 +104,14 @@ int     start_simulation(t_simulation *simulation);
 int     is_dead(t_philosopher *philosopher);
 int     is_even(int n);
 long    set_time();
-int     ft_usleep(int waiting_time, t_philosopher *philosopher);
+int     ft_usleep(long waiting_time, t_philosopher *philosopher);
 int     set_simulation_time(t_simulation   *simulation);
 // ==============================================================================
 // PARSER UTILS
 // ==============================================================================
 int     check_invalid_values(t_simulation *simulation);
 int     contains_alphas(char **argv);
-int     ft_atoi(const char *str);
+long    ft_atoi(const char *str);
 int     ft_isalpha(int c);
 
 int     check_last_meal_mutex(t_philosopher *philosopher, int mode);
@@ -119,4 +119,5 @@ void    check_fork_mutexes(t_philosopher *philosopher, int mode);
 int     check_stop_mutex(t_simulation *simulation, int mode);
 void    print_message(t_simulation *simulation, int message_type, int philosopher_id);
 int     check_if_all_philosophers_ate(t_philosopher *philosopher, int flag);
+
 #endif 

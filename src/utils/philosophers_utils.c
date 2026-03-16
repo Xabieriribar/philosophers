@@ -33,9 +33,9 @@ int set_simulation_time(t_simulation   *simulation)
     return (0);
 }
 
-int ft_usleep(int waiting_time, t_philosopher *philosopher)
+int ft_usleep(long  waiting_time, t_philosopher *philosopher)
 {
-    int time_before_loop;
+    long time_before_loop;
 
     time_before_loop = set_time();
     while ((set_time() - time_before_loop) < waiting_time)

@@ -43,11 +43,11 @@ int     contains_alphas(char **argv)
     return (0);
 }
 
-int    ft_atoi(const char *str)
+long    ft_atoi(const char *str)
 {
-    int    result;
-    int    sign;
-    int    i;
+    long   result;
+    long   sign;
+    long   i;
     
     result = 0;
     sign = 1;

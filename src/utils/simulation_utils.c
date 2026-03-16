@@ -77,7 +77,7 @@ void    *start_philo_routine(void *void_philosopher_struct)
     t_philosopher *philosophers;
 
     philosophers = (t_philosopher *)void_philosopher_struct;
-    while (!check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) && !check_if_all_philosophers_ate(philosophers, CHECK_IF_FULL))
+    while (!check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG))
     {
         if (eat(philosophers) != 0)
             break ;

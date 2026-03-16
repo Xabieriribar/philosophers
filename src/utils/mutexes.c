@@ -67,8 +67,11 @@ int check_if_all_philosophers_ate(t_philosopher *philosopher, int flag)
         philosopher->meals_eaten++;
     else if (flag == CHECK_IF_FULL)
     {
-        while (i < philosopher->simulation_p->number_of_philosophers && philosopher->simulation_p->philosophers[i].meals_eaten == philosopher->simulation_p->number_of_times_each_philosopher_must_eat)
-            philosopher->simulation_p->philosophers[i++].is_full = 1;
+        while (i < philosopher->simulation_p->number_of_philosophers && philosopher->simulation_p->philosophers[i].meals_eaten >= philosopher->simulation_p->number_of_times_each_philosopher_must_eat)
+        {
+            philosopher->simulation_p->philosophers[i].is_full = 1;
+            i++;
+        }
         i = 0;
         while (i < philosopher->simulation_p->number_of_philosophers)
         {
