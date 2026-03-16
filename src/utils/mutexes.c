@@ -60,7 +60,7 @@ void    print_message(t_simulation *simulation, int message_type, int philosophe
     else if (message_type == PRINT_MESSAGE_SLEEP && !check_stop_mutex(simulation, READ_STOP_FLAG))
         printf("%ld %d is sleeping\n", set_time() - simulation->simulation_start_time, philosopher_id);
     else if (message_type == PRINT_MESSAGE_THINK && !check_stop_mutex(simulation, READ_STOP_FLAG))
-        printf("%ld %dis thinking\n", set_time() - simulation->simulation_start_time, philosopher_id);
+        printf("%ld %d is thinking\n", set_time() - simulation->simulation_start_time, philosopher_id);
     else
         check_stop_mutex(simulation, IS_DEAD);
     pthread_mutex_unlock(&(simulation->stdout_mutex));

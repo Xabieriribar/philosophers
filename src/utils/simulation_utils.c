@@ -46,16 +46,16 @@ int     eat(t_philosopher *philosophers)
 {
     pthread_mutex_t *first;
     pthread_mutex_t *second;
-    // if (philosophers->simulation_p->number_of_philosophers == 1)
-    // {
-    //     pthread_mutex_lock(&(philosophers->left_fork->mutex));
-    //     print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK, philosophers->philosopher_id);
-    //     while (1)
-    //     {
-    //         if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
-    //             return (1);
-    //     }
-    // }
+    if (philosophers->simulation_p->number_of_philosophers == 1)
+    {
+        pthread_mutex_lock(&(philosophers->left_fork->mutex));
+        print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK, philosophers->philosopher_id);
+        while (1)
+        {
+            if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
+                return (1);
+        }
+    }
     assign_forks(&first, &second, philosophers);
     pthread_mutex_lock(first);
     if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
