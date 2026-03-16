@@ -17,20 +17,6 @@ int check_last_meal_mutex(t_philosopher *philosopher, int mode)
     return (0);
 }
 
-void    check_fork_mutexes(t_philosopher *philosopher, int mode)
-{
-    if (mode == LOCK_FORKS)
-    {
-        pthread_mutex_lock(&(philosopher->left_fork->mutex));
-        pthread_mutex_lock(&(philosopher->right_fork->mutex));
-    }
-    else if (mode == UNLOCK_FORKS)
-    {
-        pthread_mutex_unlock(&(philosopher->left_fork->mutex));
-        pthread_mutex_lock(&(philosopher->right_fork->mutex));
-    }
-}
-
 int check_stop_mutex(t_simulation *simulation, int mode)
 {
     pthread_mutex_lock(&(simulation->stop_mutex));
@@ -78,7 +64,7 @@ int check_if_all_philosophers_ate(t_philosopher *philosopher, int flag)
         philosopher->meals_eaten++;
     else if (flag == CHECK_IF_FULL)
     {
-        while (philosopher->simulation_p->philosophers[i].meals_eaten == philosopher->simulation_p->number_of_times_each_philosopher_must_eat && i < philosopher->simulation_p->number_of_philosophers)
+        while (i < philosopher->simulation_p->number_of_philosophers && philosopher->simulation_p->philosophers[i].meals_eaten >= philosopher->simulation_p->number_of_times_each_philosopher_must_eat)
             philosopher->simulation_p->philosophers[i++].is_full = 1;
         i = 0;
         while (i < philosopher->simulation_p->number_of_philosophers)
