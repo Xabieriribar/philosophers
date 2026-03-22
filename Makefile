@@ -17,6 +17,7 @@ SRCS        = src/main.c \
 			  src/utils/philosophers_utils.c \
 			  src/utils/parser_utils.c \
 			  src/utils/simulation_utils.c \
+				src/utils/simulation_utils2.c \
 			  src/utils/init_utils.c \
 			  src/utils/mutexes.c \
 

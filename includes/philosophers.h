@@ -119,5 +119,6 @@ void    check_fork_mutexes(t_philosopher *philosopher, int mode);
 int     check_stop_mutex(t_simulation *simulation, int mode);
 void    print_message(t_simulation *simulation, int message_type, int philosopher_id);
 int     check_if_all_philosophers_ate(t_philosopher *philosopher, int flag);
+void	*handle_one_thread(void *single_philosopher_struct);
 
 #endif 

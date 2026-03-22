@@ -1,0 +1,13 @@
+0 1 has taken a fork
+0 1 has taken a fork
+0 1 is eating
+0 2 has taken a fork
+200 1 is sleeping
+200 4 has taken a fork
+200 4 has taken a fork
+200 4 is eating
+200 2 has taken a fork
+200 2 is eating
+300 1 is thinking
+322 1 died
+Managed to initialise them

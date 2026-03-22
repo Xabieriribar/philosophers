@@ -1,86 +1,87 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   mutexes.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: your_login <your_login@student.42.fr>      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/22 12:00:00 by your_login        #+#    #+#             */
+/*   Updated: 2026/03/22 12:00:00 by your_login       ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../../includes/philosophers.h"
 
-int check_last_meal_mutex(t_philosopher *philosopher, int mode)
+int	check_last_meal_mutex(t_philosopher *philosopher, int mode)
 {
-    pthread_mutex_lock(&(philosopher->simulation_p->last_meal_mutex));
-    if (mode == PHILOSOPHER_ATE)
-       philosopher->last_meal = set_time();
-    else if (mode == IS_DEAD)
-    {
-        if (is_dead(philosopher))
-        {
-            pthread_mutex_unlock(&(philosopher->simulation_p->last_meal_mutex));
-            return (1);
-        }
-    }
-    pthread_mutex_unlock(&(philosopher->simulation_p->last_meal_mutex));
-    return (0);
+	pthread_mutex_lock(&(philosopher->simulation_p->last_meal_mutex));
+	if (mode == PHILOSOPHER_ATE)
+		philosopher->last_meal = set_time();
+	else if (mode == IS_DEAD)
+	{
+		if (is_dead(philosopher))
+		{
+			pthread_mutex_unlock(&(philosopher->simulation_p->last_meal_mutex));
+			return (1);
+		}
+	}
+	pthread_mutex_unlock(&(philosopher->simulation_p->last_meal_mutex));
+	return (0);
 }
 
-int check_stop_mutex(t_simulation *simulation, int mode)
+int	check_stop_mutex(t_simulation *simulation, int mode)
 {
-    pthread_mutex_lock(&(simulation->stop_mutex));
-    if (mode == IS_DEAD)
-        simulation->stop = 1;
-    else if (mode == READ_STOP_FLAG)
-    {
-        if (simulation->stop)
-        {
-            pthread_mutex_unlock(&(simulation->stop_mutex));
-            return (1);
-        }
-    }
-    pthread_mutex_unlock(&(simulation->stop_mutex));
-    return (0);
+	pthread_mutex_lock(&(simulation->stop_mutex));
+	if (mode == IS_DEAD)
+		simulation->stop = 1;
+	else if (mode == READ_STOP_FLAG)
+	{
+		if (simulation->stop)
+		{
+			pthread_mutex_unlock(&(simulation->stop_mutex));
+			return (1);
+		}
+	}
+	pthread_mutex_unlock(&(simulation->stop_mutex));
+	return (0);
 }
 
-void    print_message(t_simulation *simulation, int message_type, int philosopher_id)
+static int	check_full_philosophers(t_philosopher *philosopher)
 {
-    pthread_mutex_lock(&(simulation->stdout_mutex));
-    if (message_type == PRINT_MESSAGE_DIE)
-    {
-        usleep(10000);
-        printf("%ld %d died\n", set_time() - simulation->simulation_start_time, philosopher_id);
-    }
-    else if (message_type == PRINT_MESSAGE_EAT && !check_stop_mutex(simulation, READ_STOP_FLAG))
-        printf("%ld %d is eating\n", set_time() - simulation->simulation_start_time, philosopher_id);
-    else if (message_type == PRINT_MESSAGE_FORK && !check_stop_mutex(simulation, READ_STOP_FLAG))
-        printf("%ld %d has taken a fork\n", set_time() - simulation->simulation_start_time, philosopher_id);
-    else if (message_type == PRINT_MESSAGE_SLEEP && !check_stop_mutex(simulation, READ_STOP_FLAG))
-        printf("%ld %d is sleeping\n", set_time() - simulation->simulation_start_time, philosopher_id);
-    else if (message_type == PRINT_MESSAGE_THINK && !check_stop_mutex(simulation, READ_STOP_FLAG))
-        printf("%ld %d is thinking\n", set_time() - simulation->simulation_start_time, philosopher_id);
-    else
-        check_stop_mutex(simulation, IS_DEAD);
-    pthread_mutex_unlock(&(simulation->stdout_mutex));
+	int	i;
+	int	j;
+
+	i = 0;
+	j = 0;
+	while (i < philosopher->simulation_p->number_of_philosophers)
+	{
+		if (philosopher->simulation_p->philosophers[i].meals_eaten
+			>= philosopher->simulation_p
+			->number_of_times_each_philosopher_must_eat)
+			philosopher->simulation_p->philosophers[i].is_full = 1;
+		if (philosopher->simulation_p->philosophers[i].is_full)
+			j++;
+		i++;
+	}
+	if (j == philosopher->simulation_p->number_of_philosophers)
+		return (1);
+	return (0);
 }
 
-int check_if_all_philosophers_ate(t_philosopher *philosopher, int flag)
+int	check_if_all_philosophers_ate(t_philosopher *philosopher, int flag)
 {
-    int i;
-    int j;
-
-    pthread_mutex_lock(&(philosopher->simulation_p->meals_eaten_mutex));
-    j = 0;
-    i = 0;
-    if (flag == I_ATE)
-        philosopher->meals_eaten++;
-    else if (flag == CHECK_IF_FULL)
-    {
-        while (i < philosopher->simulation_p->number_of_philosophers && philosopher->simulation_p->philosophers[i].meals_eaten >= philosopher->simulation_p->number_of_times_each_philosopher_must_eat)
-        {
-            philosopher->simulation_p->philosophers[i].is_full = 1;
-            i++;
-        }
-        i = 0;
-        while (i < philosopher->simulation_p->number_of_philosophers)
-        {
-            if (philosopher->simulation_p->philosophers[i].is_full)
-                j++;
-            if (j == philosopher->simulation_p->number_of_philosophers)
-                return (pthread_mutex_unlock(&(philosopher->simulation_p->meals_eaten_mutex)), 1);
-            i++;
-        }
-    }
-    return (pthread_mutex_unlock(&(philosopher->simulation_p->meals_eaten_mutex)), 0);
+	pthread_mutex_lock(&(philosopher->simulation_p->meals_eaten_mutex));
+	if (flag == I_ATE)
+		philosopher->meals_eaten++;
+	else if (flag == CHECK_IF_FULL)
+	{
+		if (check_full_philosophers(philosopher))
+		{
+			pthread_mutex_unlock(
+				&(philosopher->simulation_p->meals_eaten_mutex));
+			return (1);
+		}
+	}
+	pthread_mutex_unlock(&(philosopher->simulation_p->meals_eaten_mutex));
+	return (0);
 }
