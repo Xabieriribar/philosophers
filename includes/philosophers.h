@@ -88,5 +88,5 @@ void	print_message(t_simulation *simulation, int message_type,
 			int philosopher_id);
 int		check_if_all_philosophers_ate(t_philosopher *philosopher, int flag);
 void	*handle_one_thread(void *single_philosopher_struct);
-
+void	*start_philo_routine(void *void_philosopher_struct)
 #endif

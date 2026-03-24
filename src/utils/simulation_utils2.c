@@ -49,19 +49,29 @@ static void	print_status_message(t_simulation *simulation, int message_type,
 		printf("%ld %d is thinking\n", time, philosopher_id);
 }
 
-void	print_message(t_simulation *simulation, int message_type,
-	int philosopher_id)
+void	assign_forks(pthread_mutex_t **first, pthread_mutex_t **second,
+	t_philosopher *philosophers)
 {
-	pthread_mutex_lock(&(simulation->stdout_mutex));
-	if (message_type == PRINT_MESSAGE_DIE)
+	if (is_even(philosophers->philosopher_id) != 0)
 	{
-		usleep(10000);
-		printf("%ld %d died\n", set_time() - simulation->simulation_start_time,
-			philosopher_id);
+		*first = &(philosophers->left_fork->mutex);
+		*second = &(philosophers->right_fork->mutex);
 	}
-	else if (!check_stop_mutex(simulation, READ_STOP_FLAG))
-		print_status_message(simulation, message_type, philosopher_id);
 	else
-		check_stop_mutex(simulation, IS_DEAD);
-	pthread_mutex_unlock(&(simulation->stdout_mutex));
+	{
+		*first = &(philosophers->right_fork->mutex);
+		*second = &(philosophers->left_fork->mutex);
+	}
 }
+
+
+static int	lock_first_fork(t_philosopher *philosophers, pthread_mutex_t *first)
+{
+	pthread_mutex_lock(first);
+	if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
+		return (pthread_mutex_unlock(first), 1);
+	print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK,
+		philosophers->philosopher_id);
+	return (0);
+}
+

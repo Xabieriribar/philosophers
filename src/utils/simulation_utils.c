@@ -12,81 +12,34 @@
 
 #include "../../includes/philosophers.h"
 
-static int	check_philo_state(t_simulation *simulation, int i)
+void	print_message(t_simulation *simulation, int message_type,
+	int philosopher_id)
 {
-	if (check_last_meal_mutex(&(simulation->philosophers[i]), IS_DEAD))
+	pthread_mutex_lock(&(simulation->stdout_mutex));
+	if (message_type == PRINT_MESSAGE_DIE)
 	{
-		check_stop_mutex(simulation, IS_DEAD);
-		print_message(simulation, PRINT_MESSAGE_DIE,
-			simulation->philosophers[i].philosopher_id);
-		return (1);
-	}
-	if (simulation->number_of_times_each_philosopher_must_eat != -1
-		&& check_if_all_philosophers_ate(&(simulation->philosophers[i]),
-			CHECK_IF_FULL))
-	{
-		print_message(simulation, ALL_PHILOSOPHERS_ATE, 0);
-		return (1);
-	}
-	return (0);
-}
-
-void	*start_monitoring_routine(void *void_simulation_struct)
-{
-	t_simulation	*simulation;
-	int				i;
-
-	simulation = (t_simulation *)void_simulation_struct;
-	while (1)
-	{
-		i = 0;
-		while (i < simulation->number_of_philosophers)
-		{
-			if (check_philo_state(simulation, i))
-				return (NULL);
-			i++;
-		}
 		usleep(10000);
+		printf("%ld %d died\n", set_time() - simulation->simulation_start_time,
+			philosopher_id);
 	}
-	return (NULL);
-}
-
-void	assign_forks(pthread_mutex_t **first, pthread_mutex_t **second,
-	t_philosopher *philosophers)
-{
-	if (is_even(philosophers->philosopher_id) != 0)
-	{
-		*first = &(philosophers->left_fork->mutex);
-		*second = &(philosophers->right_fork->mutex);
-	}
+	else if (!check_stop_mutex(simulation, READ_STOP_FLAG))
+		print_status_message(simulation, message_type, philosopher_id);
 	else
-	{
-		*first = &(philosophers->right_fork->mutex);
-		*second = &(philosophers->left_fork->mutex);
-	}
+		check_stop_mutex(simulation, IS_DEAD);
+	pthread_mutex_unlock(&(simulation->stdout_mutex));
 }
 
-static int	lock_first_fork(t_philosopher *philosophers, pthread_mutex_t *first)
+int	start_simulation(t_simulation *simulation)
 {
-	pthread_mutex_lock(first);
-	if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
-		return (pthread_mutex_unlock(first), 1);
-	print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK,
-		philosophers->philosopher_id);
-	return (0);
-}
+	int			i;
+	pthread_t	monitor_thread_handle;
 
-static int	lock_second_fork(t_philosopher *philosophers,
-	pthread_mutex_t *first, pthread_mutex_t *second)
-{
-	pthread_mutex_lock(second);
-	if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
-	{
-		pthread_mutex_unlock(first);
-		return (pthread_mutex_unlock(second), 1);
-	}
-	print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK,
-		philosophers->philosopher_id);
+	i = 0;
+	set_simulation_time(simulation);
+	create_threads(simulation, i);
+	pthread_create(&monitor_thread_handle, NULL,
+		start_monitoring_routine, simulation);
+	join_threads(simulation, monitor_thread_handle);
 	return (0);
 }
 
@@ -107,41 +60,17 @@ static int	finish_eating(t_philosopher *philosophers,
 	return (0);
 }
 
-int	eat(t_philosopher *philosophers)
+static void	join_threads(t_simulation *simulation, pthread_t monitor_thread)
 {
-	pthread_mutex_t	*first;
-	pthread_mutex_t	*second;
+	int	i;
 
-	assign_forks(&first, &second, philosophers);
-	if (lock_first_fork(philosophers, first))
-		return (1);
-	if (lock_second_fork(philosophers, first, second))
-		return (1);
-	if (finish_eating(philosophers, first, second))
-		return (1);
-	return (0);
-}
-
-void	*start_philo_routine(void *void_philosopher_struct)
-{
-	t_philosopher	*philosophers;
-
-	philosophers = (t_philosopher *)void_philosopher_struct;
-	while (!check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG))
+	i = 0;
+	while (i < simulation->number_of_philosophers)
 	{
-		if (eat(philosophers) != 0)
-			break ;
-		if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
-			break ;
-		print_message(philosophers->simulation_p, PRINT_MESSAGE_SLEEP,
-			philosophers->philosopher_id);
-		if (ft_usleep(philosophers->simulation_p->time_to_sleep,
-				philosophers) != 0)
-			break ;
-		print_message(philosophers->simulation_p, PRINT_MESSAGE_THINK,
-			philosophers->philosopher_id);
+		pthread_join(simulation->philosophers[i].thread_handle, NULL);
+		i++;
 	}
-	return (NULL);
+	pthread_join(monitor_thread, NULL);
 }
 
 static void	create_threads(t_simulation *simulation, int i)
@@ -158,31 +87,4 @@ static void	create_threads(t_simulation *simulation, int i)
 			i++;
 		}
 	}
-}
-
-static void	join_threads(t_simulation *simulation, pthread_t monitor_thread)
-{
-	int	i;
-
-	i = 0;
-	while (i < simulation->number_of_philosophers)
-	{
-		pthread_join(simulation->philosophers[i].thread_handle, NULL);
-		i++;
-	}
-	pthread_join(monitor_thread, NULL);
-}
-
-int	start_simulation(t_simulation *simulation)
-{
-	int			i;
-	pthread_t	monitor_thread_handle;
-
-	i = 0;
-	set_simulation_time(simulation);
-	create_threads(simulation, i);
-	pthread_create(&monitor_thread_handle, NULL,
-		start_monitoring_routine, simulation);
-	join_threads(simulation, monitor_thread_handle);
-	return (0);
 }
