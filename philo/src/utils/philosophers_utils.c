@@ -12,19 +12,6 @@
 
 #include "../../includes/philosophers.h"
 
-static const char	*action_name(int action)
-{
-	if (action == ACT_FORK)
-		return ("has taken a fork");
-	if (action == ACT_EAT)
-		return ("is eating");
-	if (action == ACT_SLEEP)
-		return ("is sleeping");
-	if (action == ACT_THINK)
-		return ("is thinking");
-	return ("died");
-}
-
 long	get_time_ms(void)
 {
 	struct timeval	time_value;
@@ -69,11 +56,7 @@ int	log_action(t_philosopher *philosopher, int action)
 	else if (action != ACT_DIED && !simulation->stop)
 		print = 1;
 	if (print)
-	{
-		printf("%ld %d %s\n", elapsed_time(simulation), philosopher->id,
-			action_name(action));
-		fflush(stdout);
-	}
+		write_log_action(simulation, philosopher, action);
 	pthread_mutex_unlock(&simulation->state_mutex);
 	pthread_mutex_unlock(&simulation->print_mutex);
 	return (!print);

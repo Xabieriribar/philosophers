@@ -22,13 +22,6 @@ static int	single_philo_routine(t_philosopher *philosopher)
 	return (0);
 }
 
-static void	stagger_start(t_philosopher *philosopher)
-{
-	if (philosopher->id % 2 == 0)
-		precise_sleep(philosopher->simulation,
-			philosopher->simulation->time_to_eat / 2);
-}
-
 static int	philo_cycle(t_philosopher *philosopher)
 {
 	if (take_forks(philosopher) != 0)
@@ -41,6 +34,8 @@ static int	philo_cycle(t_philosopher *philosopher)
 			philosopher->simulation->time_to_sleep) != 0)
 		return (1);
 	if (log_action(philosopher, ACT_THINK) != 0)
+		return (1);
+	if (precise_sleep(philosopher->simulation, think_delay(philosopher)) != 0)
 		return (1);
 	return (0);
 }

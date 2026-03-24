@@ -20,6 +20,8 @@ RM			= rm -f
 SRCS		= src/main.c \
 			  src/utils/philosophers_utils.c \
 			  src/utils/parser_utils.c \
+			  src/utils/log_utils.c \
+			  src/utils/schedule_utils.c \
 			  src/utils/simulation_utils.c \
 			  src/utils/simulation_utils2.c \
 			  src/utils/simulation_utils3.c \

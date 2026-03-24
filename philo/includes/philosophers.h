@@ -15,7 +15,6 @@
 
 # include <limits.h>
 # include <pthread.h>
-# include <stdio.h>
 # include <stdlib.h>
 # include <sys/time.h>
 # include <unistd.h>
@@ -80,10 +79,14 @@ long	get_time_ms(void);
 long	elapsed_time(t_simulation *simulation);
 int		precise_sleep(t_simulation *simulation, long duration);
 int		log_action(t_philosopher *philosopher, int action);
+void	write_log_action(t_simulation *simulation, t_philosopher *philosopher,
+			int action);
 
 int		take_forks(t_philosopher *philosopher);
 void	release_forks(t_philosopher *philosopher);
 int		eat_cycle(t_philosopher *philosopher);
+void	stagger_start(t_philosopher *philosopher);
+long	think_delay(t_philosopher *philosopher);
 void	*philo_routine(void *arg);
 void	*monitor_routine(void *arg);
 
