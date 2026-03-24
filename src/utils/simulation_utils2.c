@@ -1,77 +1,86 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   simulation_utils_2.c                               :+:      :+:    :+:   */
+/*   simulation_utils2.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: your_login <your_login@student.42.fr>      +#+  +:+       +#+        */
+/*   By: xiribar <xiribar@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/22 12:00:00 by your_login        #+#    #+#             */
-/*   Updated: 2026/03/22 12:00:00 by your_login       ###   ########.fr       */
+/*   Created: 2026/03/24 16:39:00 by xiribar           #+#    #+#             */
+/*   Updated: 2026/03/24 16:39:00 by xiribar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/philosophers.h"
 
-void	*handle_one_thread(void *single_philosopher_struct)
+static int	single_philo_routine(t_philosopher *philosopher)
 {
-	t_philosopher	*single_philosopher;
+	pthread_mutex_lock(&philosopher->right_fork->mutex);
+	if (log_action(philosopher, ACT_FORK) == 0)
+		precise_sleep(philosopher->simulation,
+			philosopher->simulation->time_to_die + 1);
+	pthread_mutex_unlock(&philosopher->right_fork->mutex);
+	return (0);
+}
 
-	single_philosopher = (t_philosopher *)single_philosopher_struct;
-	pthread_mutex_lock(&(single_philosopher->left_fork->mutex));
-	print_message(single_philosopher->simulation_p, PRINT_MESSAGE_FORK,
-		single_philosopher->philosopher_id);
-	while (1)
+static void	stagger_start(t_philosopher *philosopher)
+{
+	if (philosopher->id % 2 == 0)
+		precise_sleep(philosopher->simulation,
+			philosopher->simulation->time_to_eat / 2);
+}
+
+static int	philo_cycle(t_philosopher *philosopher)
+{
+	if (take_forks(philosopher) != 0)
+		return (1);
+	if (eat_cycle(philosopher) != 0)
+		return (1);
+	if (log_action(philosopher, ACT_SLEEP) != 0)
+		return (1);
+	if (precise_sleep(philosopher->simulation,
+			philosopher->simulation->time_to_sleep) != 0)
+		return (1);
+	if (log_action(philosopher, ACT_THINK) != 0)
+		return (1);
+	return (0);
+}
+
+void	*philo_routine(void *arg)
+{
+	t_philosopher	*philosopher;
+
+	philosopher = (t_philosopher *)arg;
+	if (philosopher->simulation->philosopher_count == 1)
+		return (single_philo_routine(philosopher), NULL);
+	stagger_start(philosopher);
+	while (should_stop(philosopher->simulation) == 0)
 	{
-		if (check_stop_mutex(single_philosopher->simulation_p,
-				READ_STOP_FLAG) != 0)
-		{
-			pthread_mutex_unlock(&(single_philosopher->left_fork->mutex));
-			return (NULL);
-		}
-		usleep(500);
+		if (philo_cycle(philosopher) != 0)
+			break ;
 	}
 	return (NULL);
 }
 
-static void	print_status_message(t_simulation *simulation, int message_type,
-	int philosopher_id)
+void	*monitor_routine(void *arg)
 {
-	long	time;
+	t_simulation	*simulation;
+	int				i;
 
-	time = set_time() - simulation->simulation_start_time;
-	if (message_type == PRINT_MESSAGE_EAT)
-		printf("%ld %d is eating\n", time, philosopher_id);
-	else if (message_type == PRINT_MESSAGE_FORK)
-		printf("%ld %d has taken a fork\n", time, philosopher_id);
-	else if (message_type == PRINT_MESSAGE_SLEEP)
-		printf("%ld %d is sleeping\n", time, philosopher_id);
-	else if (message_type == PRINT_MESSAGE_THINK)
-		printf("%ld %d is thinking\n", time, philosopher_id);
-}
-
-void	assign_forks(pthread_mutex_t **first, pthread_mutex_t **second,
-	t_philosopher *philosophers)
-{
-	if (is_even(philosophers->philosopher_id) != 0)
+	simulation = (t_simulation *)arg;
+	while (should_stop(simulation) == 0)
 	{
-		*first = &(philosophers->left_fork->mutex);
-		*second = &(philosophers->right_fork->mutex);
+		if (all_philosophers_full(simulation) != 0)
+			return (set_stop_flag(simulation), NULL);
+		i = 0;
+		while (i < simulation->philosopher_count)
+		{
+			if (get_time_ms() - get_last_meal(&simulation->philosophers[i])
+				>= simulation->time_to_die)
+				return (log_action(&simulation->philosophers[i],
+						ACT_DIED), NULL);
+			i++;
+		}
+		usleep(1000);
 	}
-	else
-	{
-		*first = &(philosophers->right_fork->mutex);
-		*second = &(philosophers->left_fork->mutex);
-	}
+	return (NULL);
 }
-
-
-static int	lock_first_fork(t_philosopher *philosophers, pthread_mutex_t *first)
-{
-	pthread_mutex_lock(first);
-	if (check_stop_mutex(philosophers->simulation_p, READ_STOP_FLAG) != 0)
-		return (pthread_mutex_unlock(first), 1);
-	print_message(philosophers->simulation_p, PRINT_MESSAGE_FORK,
-		philosophers->philosopher_id);
-	return (0);
-}
-

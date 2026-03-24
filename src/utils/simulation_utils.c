@@ -5,86 +5,77 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: xiribar <xiribar@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/22 12:00:00 by xiribar           #+#    #+#             */
-/*   Updated: 2026/03/24 00:00:00 by xiribar          ###   ########.fr       */
+/*   Created: 2026/03/24 16:39:00 by xiribar           #+#    #+#             */
+/*   Updated: 2026/03/24 16:39:00 by xiribar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/philosophers.h"
 
-void	print_message(t_simulation *simulation, int message_type,
-	int philosopher_id)
+static void	assign_forks(t_philosopher *philosopher, t_fork **first,
+	t_fork **second)
 {
-	pthread_mutex_lock(&(simulation->stdout_mutex));
-	if (message_type == PRINT_MESSAGE_DIE)
+	if (philosopher->id % 2 == 0)
 	{
-		usleep(10000);
-		printf("%ld %d died\n", set_time() - simulation->simulation_start_time,
-			philosopher_id);
+		*first = philosopher->right_fork;
+		*second = philosopher->left_fork;
 	}
-	else if (!check_stop_mutex(simulation, READ_STOP_FLAG))
-		print_status_message(simulation, message_type, philosopher_id);
 	else
-		check_stop_mutex(simulation, IS_DEAD);
-	pthread_mutex_unlock(&(simulation->stdout_mutex));
+	{
+		*first = philosopher->left_fork;
+		*second = philosopher->right_fork;
+	}
 }
 
-int	start_simulation(t_simulation *simulation)
+static int	lock_one_fork(t_philosopher *philosopher, t_fork *fork)
 {
-	int			i;
-	pthread_t	monitor_thread_handle;
-
-	i = 0;
-	set_simulation_time(simulation);
-	create_threads(simulation, i);
-	pthread_create(&monitor_thread_handle, NULL,
-		start_monitoring_routine, simulation);
-	join_threads(simulation, monitor_thread_handle);
+	pthread_mutex_lock(&fork->mutex);
+	if (should_stop(philosopher->simulation))
+	{
+		pthread_mutex_unlock(&fork->mutex);
+		return (1);
+	}
+	if (log_action(philosopher, ACT_FORK) != 0)
+	{
+		pthread_mutex_unlock(&fork->mutex);
+		return (1);
+	}
 	return (0);
 }
 
-static int	finish_eating(t_philosopher *philosophers,
-	pthread_mutex_t *first, pthread_mutex_t *second)
+int	take_forks(t_philosopher *philosopher)
 {
-	check_last_meal_mutex(philosophers, PHILOSOPHER_ATE);
-	print_message(philosophers->simulation_p, PRINT_MESSAGE_EAT,
-		philosophers->philosopher_id);
-	check_if_all_philosophers_ate(philosophers, I_ATE);
-	if (ft_usleep(philosophers->simulation_p->time_to_eat, philosophers) != 0)
+	t_fork	*first;
+	t_fork	*second;
+
+	assign_forks(philosopher, &first, &second);
+	if (lock_one_fork(philosopher, first) != 0)
+		return (1);
+	if (lock_one_fork(philosopher, second) != 0)
 	{
-		pthread_mutex_unlock(first);
-		return (pthread_mutex_unlock(second), 1);
+		pthread_mutex_unlock(&first->mutex);
+		return (1);
 	}
-	pthread_mutex_unlock(first);
-	pthread_mutex_unlock(second);
 	return (0);
 }
 
-static void	join_threads(t_simulation *simulation, pthread_t monitor_thread)
+void	release_forks(t_philosopher *philosopher)
 {
-	int	i;
-
-	i = 0;
-	while (i < simulation->number_of_philosophers)
-	{
-		pthread_join(simulation->philosophers[i].thread_handle, NULL);
-		i++;
-	}
-	pthread_join(monitor_thread, NULL);
+	pthread_mutex_unlock(&philosopher->left_fork->mutex);
+	pthread_mutex_unlock(&philosopher->right_fork->mutex);
 }
 
-static void	create_threads(t_simulation *simulation, int i)
+int	eat_cycle(t_philosopher *philosopher)
 {
-	if (simulation->number_of_philosophers == 1)
-		pthread_create(&(simulation->philosophers[i].thread_handle), NULL,
-			handle_one_thread, &(simulation->philosophers[i]));
-	else
-	{
-		while (i < simulation->number_of_philosophers)
-		{
-			pthread_create(&(simulation->philosophers[i].thread_handle), NULL,
-				start_philo_routine, &(simulation->philosophers[i]));
-			i++;
-		}
-	}
+	pthread_mutex_lock(&philosopher->simulation->state_mutex);
+	philosopher->last_meal = get_time_ms();
+	pthread_mutex_unlock(&philosopher->simulation->state_mutex);
+	if (log_action(philosopher, ACT_EAT) != 0)
+		return (release_forks(philosopher), 1);
+	if (precise_sleep(philosopher->simulation,
+			philosopher->simulation->time_to_eat) != 0)
+		return (release_forks(philosopher), 1);
+	mark_meal_done(philosopher);
+	release_forks(philosopher);
+	return (0);
 }

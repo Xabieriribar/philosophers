@@ -1,31 +1,32 @@
-# ==============================================================================
-# Target Name
-# ==============================================================================
-NAME        = philo
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: xiribar <xiribar@student.42lausanne.ch>    +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2026/03/24 16:39:00 by xiribar           #+#    #+#              #
+#    Updated: 2026/03/24 16:39:00 by xiribar          ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
 
-# ==============================================================================
-# Compiler and Flags
-# ==============================================================================
-CC          = cc
-CFLAGS      = -Wall -Wextra -Werror
-PTHREAD     = -pthread 
+NAME		= philo
+CC			= cc
+CFLAGS		= -Wall -Wextra -Werror
+CPPFLAGS	= -Iincludes
+PTHREAD		= -pthread
+RM			= rm -f
 
-# ==============================================================================
-# Source Files and Object Files
-# ==============================================================================
-SRCS        = src/main.c \
+SRCS		= src/main.c \
 			  src/utils/philosophers_utils.c \
 			  src/utils/parser_utils.c \
 			  src/utils/simulation_utils.c \
-				src/utils/simulation_utils2.c \
+			  src/utils/simulation_utils2.c \
+			  src/utils/simulation_utils3.c \
 			  src/utils/init_utils.c \
-			  src/utils/mutexes.c \
+			  src/utils/mutexes.c
 
-OBJS        = $(SRCS:.c=.o)
-
-# ==============================================================================
-# Rules
-# ==============================================================================
+OBJS		= $(SRCS:.c=.o)
 
 all: $(NAME)
 
@@ -33,13 +34,13 @@ $(NAME): $(OBJS)
 	$(CC) $(CFLAGS) $(PTHREAD) $(OBJS) -o $(NAME)
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(PTHREAD) -c $< -o $@
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(PTHREAD) -c $< -o $@
 
 clean:
-	rm -f $(OBJS)
+	$(RM) $(OBJS)
 
 fclean: clean
-	rm -f $(NAME)
+	$(RM) $(NAME)
 
 re: fclean all
 

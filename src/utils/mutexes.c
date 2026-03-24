@@ -3,85 +3,62 @@
 /*                                                        :::      ::::::::   */
 /*   mutexes.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: your_login <your_login@student.42.fr>      +#+  +:+       +#+        */
+/*   By: xiribar <xiribar@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/22 12:00:00 by your_login        #+#    #+#             */
-/*   Updated: 2026/03/22 12:00:00 by your_login       ###   ########.fr       */
+/*   Created: 2026/03/24 16:39:00 by xiribar           #+#    #+#             */
+/*   Updated: 2026/03/24 16:39:00 by xiribar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/philosophers.h"
 
-int	check_last_meal_mutex(t_philosopher *philosopher, int mode)
+int	should_stop(t_simulation *simulation)
 {
-	pthread_mutex_lock(&(philosopher->simulation_p->last_meal_mutex));
-	if (mode == PHILOSOPHER_ATE)
-		philosopher->last_meal = set_time();
-	else if (mode == IS_DEAD)
-	{
-		if (is_dead(philosopher))
-		{
-			pthread_mutex_unlock(&(philosopher->simulation_p->last_meal_mutex));
-			return (1);
-		}
-	}
-	pthread_mutex_unlock(&(philosopher->simulation_p->last_meal_mutex));
-	return (0);
+	int	stop;
+
+	pthread_mutex_lock(&simulation->state_mutex);
+	stop = simulation->stop;
+	pthread_mutex_unlock(&simulation->state_mutex);
+	return (stop);
 }
 
-int	check_stop_mutex(t_simulation *simulation, int mode)
+void	set_stop_flag(t_simulation *simulation)
 {
-	pthread_mutex_lock(&(simulation->stop_mutex));
-	if (mode == IS_DEAD)
-		simulation->stop = 1;
-	else if (mode == READ_STOP_FLAG)
-	{
-		if (simulation->stop)
-		{
-			pthread_mutex_unlock(&(simulation->stop_mutex));
-			return (1);
-		}
-	}
-	pthread_mutex_unlock(&(simulation->stop_mutex));
-	return (0);
+	pthread_mutex_lock(&simulation->state_mutex);
+	simulation->stop = 1;
+	pthread_mutex_unlock(&simulation->state_mutex);
 }
 
-static int	check_full_philosophers(t_philosopher *philosopher)
+long	get_last_meal(t_philosopher *philosopher)
 {
-	int	i;
-	int	j;
+	long	last_meal;
 
-	i = 0;
-	j = 0;
-	while (i < philosopher->simulation_p->number_of_philosophers)
-	{
-		if (philosopher->simulation_p->philosophers[i].meals_eaten
-			>= philosopher->simulation_p
-			->number_of_times_each_philosopher_must_eat)
-			philosopher->simulation_p->philosophers[i].is_full = 1;
-		if (philosopher->simulation_p->philosophers[i].is_full)
-			j++;
-		i++;
-	}
-	if (j == philosopher->simulation_p->number_of_philosophers)
-		return (1);
-	return (0);
+	pthread_mutex_lock(&philosopher->simulation->state_mutex);
+	last_meal = philosopher->last_meal;
+	pthread_mutex_unlock(&philosopher->simulation->state_mutex);
+	return (last_meal);
 }
 
-int	check_if_all_philosophers_ate(t_philosopher *philosopher, int flag)
+void	mark_meal_done(t_philosopher *philosopher)
 {
-	pthread_mutex_lock(&(philosopher->simulation_p->meals_eaten_mutex));
-	if (flag == I_ATE)
-		philosopher->meals_eaten++;
-	else if (flag == CHECK_IF_FULL)
+	pthread_mutex_lock(&philosopher->simulation->state_mutex);
+	philosopher->meals_eaten++;
+	if (philosopher->simulation->meals_required > 0 && !philosopher->is_full
+		&& philosopher->meals_eaten >= philosopher->simulation->meals_required)
 	{
-		if (check_full_philosophers(philosopher))
-		{
-			pthread_mutex_unlock(
-				&(philosopher->simulation_p->meals_eaten_mutex));
-			return (1);
-		}
+		philosopher->is_full = 1;
+		philosopher->simulation->full_count++;
 	}
-	pthread_mutex_unlock(&(philosopher->simulation_p->meals_eaten_mutex));
-	return (0);
+	pthread_mutex_unlock(&philosopher->simulation->state_mutex);
+}
+
+int	all_philosophers_full(t_simulation *simulation)
+{
+	int	full;
+
+	pthread_mutex_lock(&simulation->state_mutex);
+	full = (simulation->meals_required > 0
+			&& simulation->full_count == simulation->philosopher_count);
+	pthread_mutex_unlock(&simulation->state_mutex);
+	return (full);
 }

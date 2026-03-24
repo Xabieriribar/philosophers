@@ -3,62 +3,78 @@
 /*                                                        :::      ::::::::   */
 /*   philosophers_utils.c                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: your_login <your_login@student.42.fr>      +#+  +:+       +#+        */
+/*   By: xiribar <xiribar@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/22 12:00:00 by your_login        #+#    #+#             */
-/*   Updated: 2026/03/22 12:00:00 by your_login       ###   ########.fr       */
+/*   Created: 2026/03/24 16:39:00 by xiribar           #+#    #+#             */
+/*   Updated: 2026/03/24 16:39:00 by xiribar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/philosophers.h"
 
-int	is_dead(t_philosopher *philosopher)
+static const char	*action_name(int action)
 {
-	if (set_time() - philosopher->last_meal
-		> philosopher->simulation_p->time_to_die)
-		return (1);
-	return (0);
+	if (action == ACT_FORK)
+		return ("has taken a fork");
+	if (action == ACT_EAT)
+		return ("is eating");
+	if (action == ACT_SLEEP)
+		return ("is sleeping");
+	if (action == ACT_THINK)
+		return ("is thinking");
+	return ("died");
 }
 
-int	is_even(int n)
+long	get_time_ms(void)
 {
-	if (n % 2 != 0)
-		return (1);
-	return (0);
+	struct timeval	time_value;
+
+	gettimeofday(&time_value, NULL);
+	return ((time_value.tv_sec * 1000) + (time_value.tv_usec / 1000));
 }
 
-long	set_time(void)
+long	elapsed_time(t_simulation *simulation)
 {
-	struct timeval	time_struct;
-
-	gettimeofday(&time_struct, NULL);
-	return ((time_struct.tv_sec * 1000) + (time_struct.tv_usec / 1000));
+	return (get_time_ms() - simulation->start_time);
 }
 
-int	set_simulation_time(t_simulation *simulation)
+int	precise_sleep(t_simulation *simulation, long duration)
 {
-	int	i;
+	long	start;
 
-	i = 0;
-	while (i < simulation->number_of_philosophers)
+	start = get_time_ms();
+	while (get_time_ms() - start < duration)
 	{
-		simulation->philosophers[i].last_meal = set_time();
-		i++;
-	}
-	simulation->simulation_start_time = set_time();
-	return (0);
-}
-
-int	ft_usleep(long waiting_time, t_philosopher *philosopher)
-{
-	long	time_before_loop;
-
-	time_before_loop = set_time();
-	while ((set_time() - time_before_loop) < waiting_time)
-	{
-		if (check_stop_mutex(philosopher->simulation_p, READ_STOP_FLAG))
+		if (should_stop(simulation))
 			return (1);
-		usleep(500);
+		usleep(200);
 	}
 	return (0);
+}
+
+int	log_action(t_philosopher *philosopher, int action)
+{
+	int				print;
+	t_simulation	*simulation;
+
+	simulation = philosopher->simulation;
+	pthread_mutex_lock(&simulation->print_mutex);
+	pthread_mutex_lock(&simulation->state_mutex);
+	print = 0;
+	if (action == ACT_DIED && !simulation->stop)
+	{
+		simulation->stop = 1;
+		print = 1;
+	}
+	else if (action != ACT_DIED && !simulation->stop)
+		print = 1;
+	if (print)
+	{
+		printf("%ld %d %s\n", elapsed_time(simulation), philosopher->id,
+			action_name(action));
+		fflush(stdout);
+	}
+	pthread_mutex_unlock(&simulation->state_mutex);
+	pthread_mutex_unlock(&simulation->print_mutex);
+	return (!print);
 }

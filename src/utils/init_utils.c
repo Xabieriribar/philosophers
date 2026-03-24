@@ -3,77 +3,80 @@
 /*                                                        :::      ::::::::   */
 /*   init_utils.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: your_login <your_login@student.42.fr>      +#+  +:+       +#+        */
+/*   By: xiribar <xiribar@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/22 12:00:00 by your_login        #+#    #+#             */
-/*   Updated: 2026/03/22 12:00:00 by your_login       ###   ########.fr       */
+/*   Created: 2026/03/24 16:39:00 by xiribar           #+#    #+#             */
+/*   Updated: 2026/03/24 16:39:00 by xiribar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/philosophers.h"
 
-int	init_mutexes(t_simulation *simulation)
+static int	init_forks(t_simulation *simulation)
 {
 	int	i;
 
-	if (!simulation)
-		return (1);
 	i = 0;
-	pthread_mutex_init(&(simulation->last_meal_mutex), NULL);
-	pthread_mutex_init(&(simulation->stop_mutex), NULL);
-	pthread_mutex_init(&(simulation->stdout_mutex), NULL);
-	pthread_mutex_init(&(simulation->meals_eaten_mutex), NULL);
-	while (i < simulation->number_of_philosophers)
+	while (i < simulation->philosopher_count)
 	{
-		pthread_mutex_init(&(simulation->forks[i].mutex), NULL);
-		simulation->forks[i].index_for_debugging = i;
-		i++;
-	}
-	return (0);
-}
-
-int	init_philosophers(t_simulation *simulation)
-{
-	int	i;
-	int	philosopher_id;
-
-	i = 0;
-	philosopher_id = 1;
-	while (i < simulation->number_of_philosophers)
-	{
-		simulation->philosophers[i].philosopher_id = philosopher_id;
-		if (i == 0)
+		if (pthread_mutex_init(&simulation->forks[i].mutex, NULL) != 0)
 		{
-			simulation->philosophers[i].left_fork
-				= &simulation->forks[simulation->number_of_philosophers - 1];
+			while (--i >= 0)
+				pthread_mutex_destroy(&simulation->forks[i].mutex);
+			return (1);
 		}
-		else
-			simulation->philosophers[i].left_fork = &simulation->forks[i - 1];
-		if (simulation->number_of_philosophers != 1)
-			simulation->philosophers[i].right_fork = &simulation->forks[i];
-		else
-			simulation->philosophers[i].right_fork = NULL;
-		simulation->philosophers[i].simulation_p = simulation;
-		simulation->philosophers[i].meals_eaten = 0;
-		philosopher_id++;
 		i++;
 	}
 	return (0);
 }
 
-int	init_structs(t_simulation *simulation)
+static void	init_one_philo(t_simulation *simulation, int i)
 {
-	simulation->philosophers = malloc(sizeof(struct s_philosopher)
-			* simulation->number_of_philosophers);
-	if (!simulation->philosophers)
-		return (1);
-	simulation->forks = malloc(sizeof(struct s_fork)
-			* simulation->number_of_philosophers);
-	if (!simulation->forks)
-		return (free(simulation->philosophers), 1);
-	if (init_mutexes(simulation) != 0)
-		return (1);
-	if (init_philosophers(simulation) != 0)
-		return (1);
+	t_philosopher	*philosopher;
+	int				left_index;
+
+	philosopher = &simulation->philosophers[i];
+	left_index = (i + simulation->philosopher_count - 1)
+		% simulation->philosopher_count;
+	philosopher->id = i + 1;
+	philosopher->meals_eaten = 0;
+	philosopher->is_full = 0;
+	philosopher->last_meal = 0;
+	philosopher->simulation = simulation;
+	philosopher->right_fork = &simulation->forks[i];
+	philosopher->left_fork = &simulation->forks[left_index];
+}
+
+static void	init_philosophers(t_simulation *simulation)
+{
+	int	i;
+
+	i = 0;
+	while (i < simulation->philosopher_count)
+	{
+		init_one_philo(simulation, i);
+		i++;
+	}
+}
+
+int	init_simulation(t_simulation *simulation)
+{
+	simulation->forks = malloc(sizeof(t_fork) * simulation->philosopher_count);
+	simulation->philosophers = malloc(sizeof(t_philosopher)
+			* simulation->philosopher_count);
+	if (!simulation->forks || !simulation->philosophers)
+		return (free(simulation->forks), free(simulation->philosophers), 1);
+	if (pthread_mutex_init(&simulation->state_mutex, NULL) != 0)
+		return (free(simulation->forks), free(simulation->philosophers), 1);
+	if (pthread_mutex_init(&simulation->print_mutex, NULL) != 0)
+	{
+		pthread_mutex_destroy(&simulation->state_mutex);
+		return (free(simulation->forks), free(simulation->philosophers), 1);
+	}
+	if (init_forks(simulation) != 0)
+		return (pthread_mutex_destroy(&simulation->state_mutex),
+			pthread_mutex_destroy(&simulation->print_mutex),
+			free(simulation->forks), free(simulation->philosophers), 1);
+	init_philosophers(simulation);
 	return (0);
 }
